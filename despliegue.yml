@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  postgres_db:
+    image: postgres:15-alpine
+    container_name: postgres_db_prod
+    environment:
+      POSTGRES_DB: bedrock_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5433:5433"
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    networks:
+      - bedrock-prod-net
+
+  backend:
+    image: dreadvorte/bedrock-hosting:latest
+    container_name: bedrock_backend_prod
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres_db_prod;Port=5432;Database=bedrock_db;Username=postgres;Password=123456
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres_db
+    networks:
+      - bedrock-prod-net
+
+volumes:
+  pgdata_prod:
+
+networks:
+  bedrock-prod-net:
+    driver: bridge
